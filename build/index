@@ -87,4 +87,4 @@ pushd stage
 index .
 popd
 unmock stage
-#upload $@
+upload $@
