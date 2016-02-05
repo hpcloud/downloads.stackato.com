@@ -1,0 +1,90 @@
+#!/bin/sh
+
+set -o xtrace
+set -o nounset
+
+bucket_contents() {
+    set -o errexit
+    aws s3 ls --recursive downloads.stackato.com | awk '/zip$/ { print $4 }'
+    set +o errexit
+}
+
+mock() {
+    set -o nounset
+    bucket_contents | while read object; do
+        mkdir -p $1/$(dirname $object)
+        touch $1/$object
+    done
+}
+
+unmock() {
+    set -o nounset
+    find $1 -name '*.zip' -exec rm '{}' \;
+}
+
+upload() {
+    set +o nounset
+    aws s3 sync $@ stage/ s3://downloads.stackato.com/
+}
+
+header() {
+    cat <<EOF
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>downloads.stackato.com</title>
+  </head>
+  <body>
+    <pre>
+EOF
+}
+
+link() {
+    href=$(echo $@ | strip_leading_dots)
+    text=$(basename "$href")
+    cat <<EOF
+      <a href="/$href">$text</a>
+EOF
+}
+
+footer(){
+    cat <<EOF
+    </pre>
+  </body>
+</html>
+EOF
+}
+
+strip_leading_dots() {
+    sed -E 's,^\./,,'
+}
+
+exclude_files() {
+    grep -vE '(sh|html|js|css)$'
+}
+
+objects() {
+    find $1 -mindepth 1 -maxdepth 1 -exec basename '{}' \; | exclude_files
+}
+
+render() {
+    header $1
+    for object in $(objects $1); do
+        link $1/$object
+    done
+    footer $1
+}
+
+index() {
+    render $1 > $1/index.html
+    for dir in $(find $1 -type d -mindepth 1); do
+        index $dir
+    done
+}
+
+mock stage
+pushd stage
+index .
+popd
+unmock stage
+#upload $@
