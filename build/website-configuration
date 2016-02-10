@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -o errexit
+set -o nounset
+set -o xtrace
+
+which -s aws
+which -s jq
+
+latest_windea_download() {
+    aws s3 ls --recursive downloads.stackato.com/windea/ | awk '/\.zip$/ { print $4 }' | sort | tail -n 1
+}
+
+website_configuration() {
+    aws s3api get-bucket-website --bucket downloads.stackato.com
+}
+
+latest_windea_rules() {
+    echo '{ "RoutingRules":'
+    website_configuration | jq --raw-output ".RoutingRules | map(if (.Condition.KeyPrefixEquals | startswith(\"windea/latest\")) then .Redirect.ReplaceKeyWith = \"$(latest_windea_download)\" else . end)"
+    echo '}'
+}
+
+regenerate() {
+    { website_configuration && latest_windea_rules; } | jq --slurp add
+}
+
+CONFIG=$(mktemp)
+regenerate > ${CONFIG}
+aws s3api put-bucket-website --bucket downloads.stackato.com --website-configuration file://${CONFIG}
+rm -f ${CONFIG}
