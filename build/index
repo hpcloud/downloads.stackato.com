@@ -3,6 +3,8 @@
 set -o xtrace
 set -o nounset
 
+WORKDIR=${PWD}
+
 bucket_contents() {
     set -o errexit
     aws s3 ls --recursive downloads.stackato.com | awk '/zip$/ { print $4 }'
@@ -83,8 +85,8 @@ index() {
 }
 
 mock stage
-pushd stage
+cd stage
 index .
-popd
+cd "${WORKDIR}"
 unmock stage
 upload $@
