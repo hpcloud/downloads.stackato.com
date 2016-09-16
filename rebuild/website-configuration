@@ -24,6 +24,6 @@ regenerate() {
 }
 
 CONFIG=$(mktemp)
-regenerate > ${CONFIG}
+regenerate > "${CONFIG}"
 aws s3api put-bucket-website --bucket downloads.stackato.com --website-configuration file://${CONFIG}
-rm -f ${CONFIG}
+rm -f "${CONFIG}"
