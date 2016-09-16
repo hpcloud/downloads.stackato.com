@@ -33,6 +33,14 @@ update_rule() {
     website_configuration | jq --raw-output "[.RoutingRules[] | select(.Condition.KeyPrefixEquals | startswith(\"$prefix\"))] | map(.Redirect.$action = \"$target\")"
 }
 
+updated_rules() {
+    printf '{ "RoutingRules":'
+    {
+        update_rule windea/latest  ReplaceKeyWith       "$(latest_object_with_prefix 'windea')"
+        update_rule client/latest/ ReplaceKeyPrefixWith "$(latest_object_with_prefix 'client' | to_client_prefix)"
+        update_rule vm/latest/     ReplaceKeyPrefixWith "$(latest_object_with_prefix 'vm'     | to_vm_prefix)"
+    } | jq --slurp add
+    printf '}\n'
 }
 
 regenerate() {
