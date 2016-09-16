@@ -5,8 +5,11 @@ set -o errexit -o nounset -o xtrace
 which -s aws
 which -s jq
 
-latest_windea_download() {
-    aws s3 ls --recursive downloads.stackato.com/windea/ | awk '/\.zip$/ { print $4 }' | sort | tail -n 1
+latest_object_with_prefix() {
+    prefix=${1}
+    aws s3 ls --recursive "downloads.stackato.com/${prefix}/" | awk '/\.zip$/ { print $4 }' | sort | tail -n 1
+}
+
 to_vm_prefix() {
     sed -E 's#[[:alnum:]]+\.zip$##'
 }
