@@ -7,6 +7,10 @@ which -s jq
 
 latest_windea_download() {
     aws s3 ls --recursive downloads.stackato.com/windea/ | awk '/\.zip$/ { print $4 }' | sort | tail -n 1
+to_vm_prefix() {
+    sed -E 's#[[:alnum:]]+\.zip$##'
+}
+
 }
 
 website_configuration() {
