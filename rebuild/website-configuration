@@ -11,6 +11,8 @@ to_vm_prefix() {
     sed -E 's#[[:alnum:]]+\.zip$##'
 }
 
+to_client_prefix() {
+    sed -E 's#(/[[:alpha:]]+-[[:digit:]\.]+-).+\.zip$#\1#'
 }
 
 website_configuration() {
