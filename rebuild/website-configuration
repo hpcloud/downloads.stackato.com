@@ -23,6 +23,13 @@ latest_windea_rules() {
     echo '{ "RoutingRules":'
     website_configuration | jq --raw-output ".RoutingRules | map(if (.Condition.KeyPrefixEquals | startswith(\"windea/latest\")) then .Redirect.ReplaceKeyWith = \"$(latest_windea_download)\" else . end)"
     echo '}'
+update_rule() {
+    prefix=${1}
+    action=${2}
+    target=${3}
+    website_configuration | jq --raw-output "[.RoutingRules[] | select(.Condition.KeyPrefixEquals | startswith(\"$prefix\"))] | map(.Redirect.$action = \"$target\")"
+}
+
 }
 
 regenerate() {
