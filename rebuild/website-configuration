@@ -40,7 +40,10 @@ updated_rules() {
 }
 
 regenerate() {
-    { website_configuration && latest_windea_rules; } | jq --slurp add
+    {
+        website_configuration
+        updated_rules
+    } | jq --slurp add
 }
 
 CONFIG=$(mktemp)
